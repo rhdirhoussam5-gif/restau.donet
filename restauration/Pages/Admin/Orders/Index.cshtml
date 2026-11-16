@@ -1,0 +1,173 @@
+@page
+@model restauration.Pages.Admin.Orders.IndexModel
+@{
+    ViewData["Title"] = "Gestion des Commandes";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-receipt-cutoff text-success me-2"></i>Gestion des Commandes & Caisse</h2>
+        <p class="text-muted mb-0">Suivi en direct du cycle de vie des commandes (Cuisine, Service, Encaissement)</p>
+    </div>
+    <a asp-page="/Admin/Orders/Create" class="btn btn-gold">
+        <i class="bi bi-plus-circle me-1"></i>Nouvelle Commande
+    </a>
+</div>
+
+<!-- Filtres par statut -->
+<div class="card card-custom p-3 mb-4">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="fw-semibold me-2">Filtrer par statut :</span>
+        <a asp-page="/Admin/Orders/Index" class="btn btn-sm @(!Model.SelectedStatus.HasValue ? "btn-dark" : "btn-outline-secondary")">
+            Toutes (@Model.Orders.Count)
+        </a>
+        <a asp-page="/Admin/Orders/Index" asp-route-SelectedStatus="@OrderStatus.EnAttente" class="btn btn-sm @(Model.SelectedStatus == OrderStatus.EnAttente ? "btn-warning text-dark" : "btn-outline-warning text-dark")">
+            En Attente
+        </a>
+        <a asp-page="/Admin/Orders/Index" asp-route-SelectedStatus="@OrderStatus.EnPreparation" class="btn btn-sm @(Model.SelectedStatus == OrderStatus.EnPreparation ? "btn-primary" : "btn-outline-primary")">
+            En Cuisine
+        </a>
+        <a asp-page="/Admin/Orders/Index" asp-route-SelectedStatus="@OrderStatus.Prete" class="btn btn-sm @(Model.SelectedStatus == OrderStatus.Prete ? "btn-info text-white" : "btn-outline-info")">
+            Prête
+        </a>
+        <a asp-page="/Admin/Orders/Index" asp-route-SelectedStatus="@OrderStatus.Servie" class="btn btn-sm @(Model.SelectedStatus == OrderStatus.Servie ? "btn-success" : "btn-outline-success")">
+            Servie
+        </a>
+        <a asp-page="/Admin/Orders/Index" asp-route-SelectedStatus="@OrderStatus.Payee" class="btn btn-sm @(Model.SelectedStatus == OrderStatus.Payee ? "btn-secondary" : "btn-outline-secondary")">
+            Payée
+        </a>
+        <a asp-page="/Admin/Orders/Index" asp-route-SelectedStatus="@OrderStatus.Annulee" class="btn btn-sm @(Model.SelectedStatus == OrderStatus.Annulee ? "btn-danger" : "btn-outline-danger")">
+            Annulée
+        </a>
+    </div>
+</div>
+
+<!-- Liste des commandes -->
+<div class="card card-custom p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>N° Commande</th>
+                    <th>Type / Emplacement</th>
+                    <th>Date / Heure</th>
+                    <th>Articles</th>
+                    <th>Montant Total</th>
+                    <th>Statut</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Orders.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            Aucune commande trouvée pour ce critère.
+                        </td>
+                    </tr>
+                }
+                @foreach (var order in Model.Orders)
+                {
+                    <tr>
+                        <td class="fw-bold">@order.OrderNumber</td>
+                        <td>
+                            @if (order.OrderType == OrderType.SurPlace && order.RestaurantTable != null)
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-geo-alt me-1"></i>Table @order.RestaurantTable.TableNumber
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info text-dark">
+                                    <i class="bi bi-bag me-1"></i>@order.OrderType: @order.CustomerName
+                                </span>
+                            }
+                        </td>
+                        <td class="small text-muted">
+                            @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small">
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    <li>
+                                        <span class="fw-semibold">@item.Quantity x</span> @item.MenuItem?.Name
+                                        @if (!string.IsNullOrEmpty(item.Notes))
+                                        {
+                                            <em class="text-muted">(@item.Notes)</em>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </td>
+                        <td class="fw-bold text-success fs-6">
+                            @order.TotalAmount.ToString("C2")
+                        </td>
+                        <td>
+                            @{
+                                var badgeClass = order.Status switch
+                                {
+                                    OrderStatus.EnAttente => "badge-status-enattente",
+                                    OrderStatus.EnPreparation => "badge-status-enpreparation",
+                                    OrderStatus.Prete => "badge-status-prete",
+                                    OrderStatus.Servie => "badge-status-servie",
+                                    OrderStatus.Payee => "badge-status-payee",
+                                    _ => "badge-status-annulee"
+                                };
+                            }
+                            <span class="badge @badgeClass">@order.Status</span>
+                        </td>
+                        <td class="text-end">
+                            <!-- Bouton rapide d'avancement -->
+                            @if (order.Status != OrderStatus.Payee && order.Status != OrderStatus.Annulee)
+                            {
+                                <form method="post" asp-page-handler="AdvanceStatus" asp-route-orderId="@order.Id" class="d-inline">
+                                    @if (order.Status == OrderStatus.EnAttente)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-primary" title="Lancer en cuisine">
+                                            <i class="bi bi-fire me-1"></i>Cuisine
+                                        </button>
+                                    }
+                                    else if (order.Status == OrderStatus.EnPreparation)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-info text-white" title="Prêt à servir">
+                                            <i class="bi bi-bell me-1"></i>Prêt
+                                        </button>
+                                    }
+                                    else if (order.Status == OrderStatus.Prete)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-success" title="Servi aux clients">
+                                            <i class="bi bi-check2 me-1"></i>Servi
+                                        </button>
+                                    }
+                                    else if (order.Status == OrderStatus.Servie)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-dark" title="Encaisser">
+                                            <i class="bi bi-cash me-1"></i>Payer
+                                        </button>
+                                    }
+                                </form>
+                            }
+
+                            <a asp-page="/Admin/Orders/Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-secondary" title="Ticket / Détails">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            @if (order.Status != OrderStatus.Payee && order.Status != OrderStatus.Annulee)
+                            {
+                                <form method="post" asp-page-handler="CancelOrder" asp-route-orderId="@order.Id" class="d-inline"
+                                      onsubmit="return confirm('Annuler la commande @order.OrderNumber ?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Annuler">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

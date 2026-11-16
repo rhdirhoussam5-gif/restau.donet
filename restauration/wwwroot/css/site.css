@@ -1,0 +1,293 @@
+/* Styles généraux - L'Atelier Gourmand */
+:root {
+    --primary-color: #c49b63;
+    --primary-hover: #b38947;
+    --dark-bg: #1a1e21;
+    --darker-bg: #121517;
+    --card-bg: #ffffff;
+    --accent-red: #dc3545;
+    --accent-green: #198754;
+    --accent-blue: #0d6efd;
+    --text-muted: #6c757d;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #2b2f33;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.brand-font {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+}
+
+/* Navigation principale */
+.navbar-custom {
+    background-color: #161a1d;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+    padding: 0.8rem 1rem;
+}
+
+.navbar-custom .navbar-brand {
+    color: #f3f4f6;
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.navbar-custom .navbar-brand span {
+    color: var(--primary-color);
+}
+
+.navbar-custom .nav-link {
+    color: #cfd4dc;
+    font-weight: 500;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+    color: #ffffff;
+    background-color: rgba(196, 155, 99, 0.15);
+}
+
+.navbar-custom .admin-badge {
+    background-color: var(--primary-color);
+    color: #121517;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 6px;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(rgba(18, 21, 23, 0.8), rgba(18, 21, 23, 0.85)), 
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600') center/cover no-repeat;
+    color: white;
+    padding: 5rem 1rem 4.5rem;
+    border-radius: 16px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.hero-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #e5e7eb;
+    max-width: 650px;
+    margin: 1rem auto 2rem;
+}
+
+/* Boutons personnalisés */
+.btn-gold {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #161a1d;
+    font-weight: 600;
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-gold:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(196, 155, 99, 0.35);
+}
+
+.btn-outline-gold {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-gold:hover {
+    background-color: var(--primary-color);
+    color: #121517;
+}
+
+/* Cartes et panneaux */
+.card-custom {
+    background: #ffffff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.card-custom:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Menu items */
+.menu-item-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.menu-item-card .card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto;
+    padding: 1.25rem;
+}
+
+.menu-item-card .card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1e21;
+    margin-bottom: 0.5rem;
+}
+
+.menu-item-card .card-text {
+    line-height: 1.55;
+    color: #6c757d;
+    font-size: 0.9rem;
+    flex-grow: 1;
+}
+
+.menu-item-img {
+    height: 220px;
+    object-fit: cover;
+    width: 100%;
+    transition: transform 0.3s ease;
+}
+
+.menu-item-card:hover .menu-item-img {
+    transform: scale(1.03);
+}
+
+.price-tag {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #b38947;
+}
+
+/* Tables de restaurant */
+.table-box {
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    border: 2px solid #e9ecef;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.table-box.disponible {
+    border-color: #198754;
+    background-color: #f1fbf5;
+}
+
+.table-box.occupee {
+    border-color: #dc3545;
+    background-color: #fff5f5;
+}
+
+.table-box.reservee {
+    border-color: #ffc107;
+    background-color: #fffdf2;
+}
+
+/* Statistiques Dashboard */
+.stat-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    border-left: 5px solid var(--primary-color);
+}
+
+.stat-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    background-color: rgba(196, 155, 99, 0.15);
+    color: var(--primary-color);
+}
+
+.stat-value {
+    font-size: 1.85rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    color: #1a1e21;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.88rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+}
+
+/* Badges */
+.badge-status-enattente {
+    background-color: #ffc107;
+    color: #000;
+}
+.badge-status-enpreparation {
+    background-color: #0d6efd;
+    color: #fff;
+}
+.badge-status-prete {
+    background-color: #0dcaf0;
+    color: #000;
+}
+.badge-status-servie {
+    background-color: #198754;
+    color: #fff;
+}
+.badge-status-payee {
+    background-color: #6c757d;
+    color: #fff;
+}
+.badge-status-annulee {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* Footer */
+footer.footer-custom {
+    background-color: #161a1d;
+    color: #adb5bd;
+    padding: 2.5rem 0 1.5rem;
+    margin-top: 3.5rem;
+}
+
+footer.footer-custom a {
+    color: var(--primary-color);
+    text-decoration: none;
+}

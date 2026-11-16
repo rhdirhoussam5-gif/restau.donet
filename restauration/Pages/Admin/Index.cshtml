@@ -1,0 +1,246 @@
+@page
+@model restauration.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Tableau de Bord";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-warning me-2"></i>Tableau de Bord du Restaurant</h2>
+        <p class="text-muted mb-0">Vue d'ensemble de l'activité en temps réel et indicateurs de performance</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-page="/Admin/Orders/Create" class="btn btn-gold shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i>Nouvelle Commande
+        </a>
+        <a asp-page="/Admin/Tables/Index" class="btn btn-outline-dark">
+            <i class="bi bi-grid-3x3 me-1"></i>Plan des Tables
+        </a>
+    </div>
+</div>
+
+<!-- Cartes d'indicateurs KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #198754;">
+            <div class="stat-icon" style="background-color: rgba(25, 135, 84, 0.12); color: #198754;">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <div class="stat-label">Chiffre d'Affaires (Aujourd'hui)</div>
+                <div class="stat-value">@Model.RevenueToday.ToString("C2")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #0d6efd;">
+            <div class="stat-icon" style="background-color: rgba(13, 110, 253, 0.12); color: #0d6efd;">
+                <i class="bi bi-fire"></i>
+            </div>
+            <div>
+                <div class="stat-label">Commandes en Cours</div>
+                <div class="stat-value">@Model.ActiveOrdersCount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #ffc107;">
+            <div class="stat-icon" style="background-color: rgba(255, 193, 7, 0.18); color: #d39e00;">
+                <i class="bi bi-calendar2-heart"></i>
+            </div>
+            <div>
+                <div class="stat-label">Réservations Aujourd'hui</div>
+                <div class="stat-value">@Model.ReservationsTodayCount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #dc3545;">
+            <div class="stat-icon" style="background-color: rgba(220, 53, 69, 0.12); color: #dc3545;">
+                <i class="bi bi-pie-chart"></i>
+            </div>
+            <div>
+                <div class="stat-label">Occupation des Tables</div>
+                <div class="stat-value">@Model.OccupiedTablesCount / @Model.TotalTablesCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertes stock bas -->
+@if (Model.LowStockCount > 0)
+{
+    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+            <div>
+                <strong>Alerte Stock Critique :</strong>
+                <span>@Model.LowStockCount ingrédient(s) sous le seuil d'alerte : </span>
+                <span class="fw-semibold">@string.Join(", ", Model.LowStockItems.Select(i => $"{i.Name} ({i.Quantity} {i.Unit})"))</span>
+            </div>
+        </div>
+        <a asp-page="/Admin/Inventory/Index" class="btn btn-sm btn-outline-dark text-nowrap ms-3">Gérer les stocks</a>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Commandes en cours (Vue Live Cuisine / Salle) -->
+    <div class="col-lg-8">
+        <div class="card card-custom p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-receipt text-primary me-2"></i>Commandes en Cours
+                </h5>
+                <a asp-page="/Admin/Orders/Index" class="small text-decoration-none fw-semibold">
+                    Voir toutes les commandes <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            @if (!Model.ActiveOrders.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-check-all display-4 text-success mb-2"></i>
+                    <p class="mb-0">Toutes les commandes sont à jour ou payées !</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Commande</th>
+                                <th>Table / Client</th>
+                                <th>Articles</th>
+                                <th>Statut</th>
+                                <th>Total</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.ActiveOrders)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@order.OrderNumber</td>
+                                    <td>
+                                        @if (order.RestaurantTable != null)
+                                        {
+                                            <span class="badge bg-secondary">Table @order.RestaurantTable.TableNumber</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info text-dark">@order.CustomerName (@order.OrderType)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            @string.Join(", ", order.OrderItems.Select(i => $"{i.Quantity}x {i.MenuItem?.Name}"))
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var badgeClass = order.Status switch
+                                            {
+                                                OrderStatus.EnAttente => "badge-status-enattente",
+                                                OrderStatus.EnPreparation => "badge-status-enpreparation",
+                                                OrderStatus.Prete => "badge-status-prete",
+                                                OrderStatus.Servie => "badge-status-servie",
+                                                _ => "badge-status-payee"
+                                            };
+                                        }
+                                        <span class="badge @badgeClass">@order.Status</span>
+                                    </td>
+                                    <td class="fw-bold">@order.TotalAmount.ToString("C2")</td>
+                                    <td class="text-end">
+                                        <form method="post" asp-page-handler="AdvanceStatus" asp-route-orderId="@order.Id" class="d-inline">
+                                            @if (order.Status == OrderStatus.EnAttente)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-arrow-right-circle me-1"></i>En cuisine
+                                                </button>
+                                            }
+                                            else if (order.Status == OrderStatus.EnPreparation)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-info text-white">
+                                                    <i class="bi bi-bell me-1"></i>Prêt
+                                                </button>
+                                            }
+                                            else if (order.Status == OrderStatus.Prete)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check2 me-1"></i>Servi
+                                                </button>
+                                            }
+                                            else if (order.Status == OrderStatus.Servie)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-dark">
+                                                    <i class="bi bi-cash me-1"></i>Encaisser
+                                                </button>
+                                            }
+                                        </form>
+                                        <a asp-page="/Admin/Orders/Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-secondary" title="Détails">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Prochaines Réservations -->
+    <div class="col-lg-4">
+        <div class="card card-custom p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-calendar-check text-warning me-2"></i>Réservations à Venir
+                </h5>
+                <a asp-page="/Admin/Reservations/Index" class="small text-decoration-none fw-semibold">
+                    Voir tout <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            @if (!Model.UpcomingReservations.Any())
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-calendar-x display-5 text-muted mb-2"></i>
+                    <p class="small mb-0">Aucune réservation pour le moment.</p>
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var res in Model.UpcomingReservations)
+                    {
+                        <div class="list-group-item px-0 py-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="fw-bold mb-0">@res.CustomerName</h6>
+                                <span class="badge @(res.Status == ReservationStatus.Confirmee ? "bg-success" : "bg-warning text-dark")">
+                                    @res.Status
+                                </span>
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <i class="bi bi-clock me-1"></i>@res.ReservationDate.ToString("dd/MM/yyyy HH:mm") • 
+                                <i class="bi bi-people me-1"></i>@res.NumberOfGuests pers.
+                            </div>
+                            <div class="small text-muted d-flex justify-content-between">
+                                <span><i class="bi bi-telephone me-1"></i>@res.CustomerPhone</span>
+                                @if (res.RestaurantTable != null)
+                                {
+                                    <span class="badge bg-light text-dark border">Table @res.RestaurantTable.TableNumber</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

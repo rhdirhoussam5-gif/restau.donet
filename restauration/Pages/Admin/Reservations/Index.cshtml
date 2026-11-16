@@ -1,0 +1,196 @@
+@page
+@model restauration.Pages.Admin.Reservations.IndexModel
+@{
+    ViewData["Title"] = "Gestion des Réservations";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-calendar-heart-fill text-danger me-2"></i>Gestion des Réservations</h2>
+        <p class="text-muted mb-0">Consultez, confirmez et assignez les tables aux réservations des clients</p>
+    </div>
+    <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#newReservationModal">
+        <i class="bi bi-plus-circle me-1"></i>Créer une Réservation
+    </button>
+</div>
+
+<!-- Filtres par statut -->
+<div class="card card-custom p-3 mb-4">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="fw-semibold me-2">Filtrer :</span>
+        <a asp-page="/Admin/Reservations/Index" class="btn btn-sm @(!Model.StatusFilter.HasValue ? "btn-dark" : "btn-outline-secondary")">
+            Toutes (@Model.Reservations.Count)
+        </a>
+        <a asp-page="/Admin/Reservations/Index" asp-route-StatusFilter="@ReservationStatus.EnAttente" class="btn btn-sm @(Model.StatusFilter == ReservationStatus.EnAttente ? "btn-warning text-dark" : "btn-outline-warning text-dark")">
+            En Attente
+        </a>
+        <a asp-page="/Admin/Reservations/Index" asp-route-StatusFilter="@ReservationStatus.Confirmee" class="btn btn-sm @(Model.StatusFilter == ReservationStatus.Confirmee ? "btn-success" : "btn-outline-success")">
+            Confirmées
+        </a>
+        <a asp-page="/Admin/Reservations/Index" asp-route-StatusFilter="@ReservationStatus.Terminee" class="btn btn-sm @(Model.StatusFilter == ReservationStatus.Terminee ? "btn-secondary" : "btn-outline-secondary")">
+            Terminées
+        </a>
+        <a asp-page="/Admin/Reservations/Index" asp-route-StatusFilter="@ReservationStatus.Annulee" class="btn btn-sm @(Model.StatusFilter == ReservationStatus.Annulee ? "btn-danger" : "btn-outline-danger")">
+            Annulées
+        </a>
+    </div>
+</div>
+
+<!-- Liste des réservations -->
+<div class="card card-custom p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Client</th>
+                    <th>Contact</th>
+                    <th>Date & Heure</th>
+                    <th>Convives</th>
+                    <th>Table Assignée</th>
+                    <th>Statut</th>
+                    <th>Notes</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Reservations.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            Aucune réservation trouvée.
+                        </td>
+                    </tr>
+                }
+                @foreach (var res in Model.Reservations)
+                {
+                    <tr>
+                        <td class="fw-bold">@res.CustomerName</td>
+                        <td>
+                            <div><i class="bi bi-telephone text-muted me-1"></i>@res.CustomerPhone</div>
+                            @if (!string.IsNullOrEmpty(res.CustomerEmail))
+                            {
+                                <small class="text-muted"><i class="bi bi-envelope me-1"></i>@res.CustomerEmail</small>
+                            }
+                        </td>
+                        <td class="fw-semibold">
+                            <i class="bi bi-calendar-event text-primary me-1"></i>@res.ReservationDate.ToString("dd/MM/yyyy")
+                            <br /><small class="text-muted"><i class="bi bi-clock me-1"></i>@res.ReservationDate.ToString("HH:mm")</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-people-fill me-1"></i>@res.NumberOfGuests pers.
+                            </span>
+                        </td>
+                        <td>
+                            @if (res.RestaurantTable != null)
+                            {
+                                <span class="badge bg-success">Table @res.RestaurantTable.TableNumber (@res.RestaurantTable.Capacity p.)</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Non assignée</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge @(res.Status == ReservationStatus.Confirmee ? "bg-success" : (res.Status == ReservationStatus.EnAttente ? "bg-warning text-dark" : (res.Status == ReservationStatus.Terminee ? "bg-secondary" : "bg-danger")))">
+                                @res.Status
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 180px;" title="@res.Notes">
+                                @(string.IsNullOrEmpty(res.Notes) ? "-" : res.Notes)
+                            </small>
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    Gérer
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li>
+                                        <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@res.Id" asp-route-status="@ReservationStatus.Confirmee">
+                                            <button type="submit" class="dropdown-item text-success">
+                                                <i class="bi bi-check-circle me-2"></i>Confirmer
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@res.Id" asp-route-status="@ReservationStatus.Terminee">
+                                            <button type="submit" class="dropdown-item text-secondary">
+                                                <i class="bi bi-flag me-2"></i>Marquer Terminée
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form method="post" asp-page-handler="UpdateStatus" asp-route-id="@res.Id" asp-route-status="@ReservationStatus.Annulee">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-x-circle me-2"></i>Annuler
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nouvelle Réservation -->
+<div class="modal fade" id="newReservationModal" tabindex="-1" aria-labelledby="newReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="AddReservation">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="newReservationModalLabel">Enregistrer une Réservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label asp-for="NewReservation.CustomerName" class="form-label fw-semibold">Nom du client</label>
+                        <input asp-for="NewReservation.CustomerName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewReservation.CustomerPhone" class="form-label fw-semibold">Téléphone</label>
+                        <input asp-for="NewReservation.CustomerPhone" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewReservation.CustomerEmail" class="form-label fw-semibold">Email</label>
+                        <input asp-for="NewReservation.CustomerEmail" type="email" class="form-control" />
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label asp-for="NewReservation.ReservationDate" class="form-label fw-semibold">Date & Heure</label>
+                            <input asp-for="NewReservation.ReservationDate" type="datetime-local" class="form-control" required />
+                        </div>
+                        <div class="col-6">
+                            <label asp-for="NewReservation.NumberOfGuests" class="form-label fw-semibold">Convives</label>
+                            <input asp-for="NewReservation.NumberOfGuests" type="number" min="1" max="50" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewReservation.RestaurantTableId" class="form-label fw-semibold">Table (optionnel)</label>
+                        <select asp-for="NewReservation.RestaurantTableId" class="form-select">
+                            <option value="">Attribuer plus tard</option>
+                            @foreach (var table in Model.Tables)
+                            {
+                                <option value="@table.Id">Table @table.TableNumber (@table.Location - @table.Capacity places)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewReservation.Notes" class="form-label fw-semibold">Notes</label>
+                        <textarea asp-for="NewReservation.Notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-gold">Enregistrer la réservation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

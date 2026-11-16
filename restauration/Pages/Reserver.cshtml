@@ -1,0 +1,117 @@
+@page
+@model ReserverModel
+@{
+    ViewData["Title"] = "Réserver une Table";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="text-center mb-4">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-semibold mb-2">Réservation en Ligne</span>
+            <h1 class="brand-font fw-bold">Réservez votre Table</h1>
+            <p class="text-muted">Un accueil privilégié vous attend à L'Atelier Gourmand. Confirmation instantanée.</p>
+        </div>
+
+        @if (Model.IsSuccess)
+        {
+            <div class="card card-custom p-4 text-center border-success mb-4 shadow">
+                <div class="display-3 text-success mb-3">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h3 class="fw-bold text-success">Réservation Enregistrée !</h3>
+                <p class="lead text-dark mt-2">@Model.SuccessMessage</p>
+                <div class="bg-light p-3 rounded-3 text-start mx-auto mb-4" style="max-width: 480px;">
+                    <div class="row small mb-1">
+                        <span class="col-5 text-muted">Nom du client :</span>
+                        <span class="col-7 fw-bold">@Model.Reservation.CustomerName</span>
+                    </div>
+                    <div class="row small mb-1">
+                        <span class="col-5 text-muted">Téléphone :</span>
+                        <span class="col-7">@Model.Reservation.CustomerPhone</span>
+                    </div>
+                    <div class="row small mb-1">
+                        <span class="col-5 text-muted">Date & Heure :</span>
+                        <span class="col-7">@Model.Reservation.ReservationDate.ToString("dd/MM/yyyy à HH:mm")</span>
+                    </div>
+                    <div class="row small mb-1">
+                        <span class="col-5 text-muted">Nombre de convives :</span>
+                        <span class="col-7">@Model.Reservation.NumberOfGuests personne(s)</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Reservation.Notes))
+                    {
+                        <div class="row small">
+                            <span class="col-5 text-muted">Demandes particulières :</span>
+                            <span class="col-7">@Model.Reservation.Notes</span>
+                        </div>
+                    }
+                </div>
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-page="/Reserver" class="btn btn-outline-dark">Faire une autre réservation</a>
+                    <a asp-page="/Menu" class="btn btn-gold">Consulter la Carte</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card card-custom p-4 p-md-5">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Reservation.CustomerName" class="form-label fw-semibold">Nom complet <span class="text-danger">*</span></label>
+                            <input asp-for="Reservation.CustomerName" class="form-control" placeholder="ex: Jean Dupont" />
+                            <span asp-validation-for="Reservation.CustomerName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Reservation.CustomerPhone" class="form-label fw-semibold">Téléphone <span class="text-danger">*</span></label>
+                            <input asp-for="Reservation.CustomerPhone" class="form-control" placeholder="ex: 06 12 34 56 78" />
+                            <span asp-validation-for="Reservation.CustomerPhone" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Reservation.CustomerEmail" class="form-label fw-semibold">Adresse Email</label>
+                            <input asp-for="Reservation.CustomerEmail" type="email" class="form-control" placeholder="ex: contact@exemple.fr" />
+                            <span asp-validation-for="Reservation.CustomerEmail" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Reservation.NumberOfGuests" class="form-label fw-semibold">Nombre de personnes <span class="text-danger">*</span></label>
+                            <select asp-for="Reservation.NumberOfGuests" class="form-select">
+                                @for (int i = 1; i <= 15; i++)
+                                {
+                                    <option value="@i">@i personne@(i > 1 ? "s" : "")</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Reservation.NumberOfGuests" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Reservation.ReservationDate" class="form-label fw-semibold">Date et heure souhaitées <span class="text-danger">*</span></label>
+                            <input asp-for="Reservation.ReservationDate" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="Reservation.ReservationDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Reservation.Notes" class="form-label fw-semibold">Demandes particulières / Allergies / Occasion</label>
+                            <textarea asp-for="Reservation.Notes" class="form-control" rows="3" placeholder="Anniversaire, table au calme, chaise haute enfant, allergies..."></textarea>
+                            <span asp-validation-for="Reservation.Notes" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 mt-4 text-center">
+                            <button type="submit" class="btn btn-gold btn-lg px-5 w-100 w-md-auto">
+                                <i class="bi bi-calendar2-check me-2"></i>Confirmer ma Réservation
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

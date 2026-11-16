@@ -1,0 +1,114 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Bienvenue";
+}
+
+<!-- Hero Banner -->
+<div class="hero-section text-center p-5 mb-5 rounded-4 shadow">
+    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold mb-3">
+        <i class="bi bi-stars me-1"></i> Gastronomie & Savoir-Faire
+    </span>
+    <h1 class="hero-title brand-font text-white mb-3">Bienvenue à L'Atelier Gourmand</h1>
+    <p class="hero-subtitle lead text-light mx-auto mb-4">
+        Vivez une expérience culinaire inoubliable avec des créations de saison élaborées avec passion par notre chef étoilé et ses équipes.
+    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a asp-page="/Reserver" class="btn btn-gold btn-lg px-4 shadow">
+            <i class="bi bi-calendar-check me-2"></i>Réserver une Table
+        </a>
+        <a asp-page="/Menu" class="btn btn-outline-light btn-lg px-4">
+            <i class="bi bi-book me-2"></i>Découvrir la Carte
+        </a>
+    </div>
+</div>
+
+<!-- Indicateur d'affluence en direct -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card card-custom p-4 text-center h-100 border-0">
+            <div class="stat-icon mx-auto mb-3">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <h5 class="fw-bold">Cadre Élégant</h5>
+            <p class="text-muted small mb-0">Situé au cœur de la ville, profitez d'une ambiance feutrée et d'une terrasse ensoleillée.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom p-4 text-center h-100 border-0">
+            <div class="stat-icon mx-auto mb-3">
+                <i class="bi bi-award"></i>
+            </div>
+            <h5 class="fw-bold">Produits Frais & Locaux</h5>
+            <p class="text-muted small mb-0">Tous nos ingrédients sont rigoureusement sélectionnés auprès de producteurs régionaux éco-responsables.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom p-4 text-center h-100 border-0">
+            <div class="stat-icon mx-auto mb-3">
+                <i class="bi bi-check2-circle text-success"></i>
+            </div>
+            <h5 class="fw-bold">Disponibilité des Tables</h5>
+            <p class="text-muted small mb-0">
+                Actuellement <strong>@Model.AvailableTablesCount tables libres</strong> sur @Model.TotalTablesCount.
+                <br /><a asp-page="/Reserver" class="text-warning fw-semibold text-decoration-none">Réservez avant qu'il ne soit complet !</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Section Plats Phares -->
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+        <div>
+            <h6 class="text-uppercase text-warning fw-bold small mb-1">Nos Recommandations</h6>
+            <h2 class="brand-font fw-bold mb-0">Les Spécialités du Chef</h2>
+        </div>
+        <a asp-page="/Menu" class="btn btn-outline-dark">
+            Voir toute la carte <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var item in Model.FeaturedItems)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom menu-item-card">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" class="menu-item-img" alt="@item.Name" loading="lazy" />
+                    }
+                    <div class="card-body d-flex flex-column flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-light text-dark border">@item.Category?.Name</span>
+                            <span class="price-tag">@item.Price.ToString("C2")</span>
+                        </div>
+                        <h5 class="card-title fw-bold mb-2">@item.Name</h5>
+                        <p class="card-text text-muted small flex-grow-1 mb-3">@item.Description</p>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                            <span class="small text-muted">
+                                <i class="bi bi-clock me-1"></i>~@item.PreparationTimeMinutes min
+                            </span>
+                            <a asp-page="/Reserver" class="btn btn-sm btn-outline-warning">
+                                Déguster sur place
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Call to action réservation -->
+<div class="card bg-dark text-white p-5 rounded-4 border-0 text-center my-4">
+    <h3 class="brand-font fw-bold mb-3">Envie d'un déjeuner ou d'un dîner d'exception ?</h3>
+    <p class="text-light lead mx-auto mb-4" style="max-width: 650px;">
+        Réservez facilement votre table en ligne en quelques clics ou contactez notre équipe pour toute demande spéciale ou banquet privé.
+    </p>
+    <div>
+        <a asp-page="/Reserver" class="btn btn-gold btn-lg px-4">
+            <i class="bi bi-calendar-event me-2"></i>Réserver dès maintenant
+        </a>
+    </div>
+</div>

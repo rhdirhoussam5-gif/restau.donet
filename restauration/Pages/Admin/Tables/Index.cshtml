@@ -1,0 +1,156 @@
+@page
+@model restauration.Pages.Admin.Tables.IndexModel
+@{
+    ViewData["Title"] = "Plan des Tables";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-grid-3x3-gap-fill text-info me-2"></i>Plan des Tables</h2>
+        <p class="text-muted mb-0">Gestion en direct de l'état des tables (Disponible, Occupée, Réservée)</p>
+    </div>
+    <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#addTableModal">
+        <i class="bi bi-plus-circle me-1"></i>Ajouter une Table
+    </button>
+</div>
+
+<!-- Légende -->
+<div class="card card-custom p-3 mb-4">
+    <div class="d-flex flex-wrap gap-4 align-items-center">
+        <span class="fw-semibold">Légende :</span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success p-2">&nbsp;</span>
+            <span class="small">Disponible (@Model.Tables.Count(t => t.Status == TableStatus.Disponible))</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger p-2">&nbsp;</span>
+            <span class="small">Occupée (@Model.Tables.Count(t => t.Status == TableStatus.Occupee))</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning p-2">&nbsp;</span>
+            <span class="small">Réservée (@Model.Tables.Count(t => t.Status == TableStatus.Reservee))</span>
+        </div>
+    </div>
+</div>
+
+<!-- Grille des tables -->
+<div class="row g-4">
+    @foreach (var table in Model.Tables)
+    {
+        var statusClass = table.Status switch
+        {
+            TableStatus.Disponible => "disponible",
+            TableStatus.Occupee => "occupee",
+            TableStatus.Reservee => "reservee",
+            _ => ""
+        };
+
+        var activeOrder = table.Orders.FirstOrDefault();
+
+        <div class="col-sm-6 col-md-4 col-xl-3">
+            <div class="card card-custom table-box @statusClass h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge @(table.Status == TableStatus.Disponible ? "bg-success" : (table.Status == TableStatus.Occupee ? "bg-danger" : "bg-warning text-dark"))">
+                        @table.Status
+                    </span>
+                    <form method="post" asp-page-handler="DeleteTable" asp-route-tableId="@table.Id" class="d-inline"
+                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer la Table @table.TableNumber ?');">
+                        <button type="submit" class="btn btn-sm btn-link text-muted p-0" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="my-2">
+                    <div class="display-6 fw-bold">Table @table.TableNumber</div>
+                    <div class="text-muted small">
+                        <i class="bi bi-people-fill me-1"></i>@table.Capacity places • @table.Location
+                    </div>
+                </div>
+
+                @if (activeOrder != null)
+                {
+                    <div class="bg-white border rounded p-2 my-2 text-start small">
+                        <div class="fw-bold text-truncate">@activeOrder.OrderNumber</div>
+                        <div class="text-muted">Total: @activeOrder.TotalAmount.ToString("C2")</div>
+                        <div class="badge bg-primary mt-1">@activeOrder.Status</div>
+                    </div>
+                }
+
+                <!-- Actions de changement d'état -->
+                <div class="dropdown mt-3">
+                    <button class="btn btn-sm btn-outline-dark dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                        Modifier Statut
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li>
+                            <form method="post" asp-page-handler="UpdateStatus" asp-route-tableId="@table.Id" asp-route-status="@TableStatus.Disponible">
+                                <button type="submit" class="dropdown-item text-success">
+                                    <i class="bi bi-check-circle me-2"></i>Marquer Disponible
+                                </button>
+                            </form>
+                        </li>
+                        <li>
+                            <form method="post" asp-page-handler="UpdateStatus" asp-route-tableId="@table.Id" asp-route-status="@TableStatus.Occupee">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-person-fill me-2"></i>Marquer Occupée
+                                </button>
+                            </form>
+                        </li>
+                        <li>
+                            <form method="post" asp-page-handler="UpdateStatus" asp-route-tableId="@table.Id" asp-route-status="@TableStatus.Reservee">
+                                <button type="submit" class="dropdown-item text-warning">
+                                    <i class="bi bi-bookmark-fill me-2"></i>Marquer Réservée
+                                </button>
+                            </form>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a asp-page="/Admin/Orders/Create" asp-route-tableId="@table.Id" class="dropdown-item">
+                                <i class="bi bi-plus-square me-2"></i>Prendre commande
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal Ajout Table -->
+<div class="modal fade" id="addTableModal" tabindex="-1" aria-labelledby="addTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="AddTable">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="addTableModalLabel">Ajouter une nouvelle table</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label asp-for="NewTable.TableNumber" class="form-label fw-semibold">Numéro de table</label>
+                        <input asp-for="NewTable.TableNumber" class="form-control" type="number" min="1" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewTable.Capacity" class="form-label fw-semibold">Capacité (personnes)</label>
+                        <input asp-for="NewTable.Capacity" class="form-control" type="number" min="1" max="50" value="4" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewTable.Location" class="form-label fw-semibold">Emplacement</label>
+                        <select asp-for="NewTable.Location" class="form-select">
+                            <option value="Salle principale">Salle principale</option>
+                            <option value="Terrasse">Terrasse</option>
+                            <option value="Salon VIP">Salon VIP</option>
+                            <option value="Bar / Comptoir">Bar / Comptoir</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-gold">Créer la table</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

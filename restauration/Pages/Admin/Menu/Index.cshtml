@@ -1,0 +1,121 @@
+@page
+@model restauration.Pages.Admin.Menu.IndexModel
+@{
+    ViewData["Title"] = "Gestion des Plats";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-egg-fried text-warning me-2"></i>Gestion de la Carte des Plats</h2>
+        <p class="text-muted mb-0">Ajoutez, modifiez et gérez la disponibilité des plats de votre établissement</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-page="/Admin/Menu/Create" class="btn btn-gold">
+            <i class="bi bi-plus-circle me-1"></i>Nouveau Plat
+        </a>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card card-custom p-3 mb-4">
+    <form method="get" class="row g-3 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" name="Search" value="@Model.Search" class="form-control" placeholder="Rechercher par nom de plat..." />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select name="CategoryId" class="form-select" onchange="this.form.submit()">
+                <option value="">Toutes les catégories</option>
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.Id" selected="@(Model.CategoryId == c.Id)">@c.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-gold flex-grow-1">Filtrer</button>
+            <a asp-page="/Admin/Menu/Index" class="btn btn-outline-secondary">Effacer</a>
+        </div>
+    </form>
+</div>
+
+<!-- Tableau des plats -->
+<div class="card card-custom p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Visuel</th>
+                    <th>Nom du Plat</th>
+                    <th>Catégorie</th>
+                    <th>Prix</th>
+                    <th>Préparation</th>
+                    <th>Disponibilité</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.MenuItems)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.Name" class="rounded" style="width: 55px; height: 55px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted" style="width: 55px; height: 55px;">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <div class="fw-bold">@item.Name</div>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 280px;">@item.Description</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@item.Category?.Name</span>
+                        </td>
+                        <td class="fw-bold text-warning">
+                            @item.Price.ToString("C2")
+                        </td>
+                        <td>
+                            <span class="small text-muted"><i class="bi bi-clock me-1"></i>@item.PreparationTimeMinutes min</span>
+                        </td>
+                        <td>
+                            <form method="post" asp-page-handler="ToggleAvailability" asp-route-id="@item.Id" class="d-inline">
+                                @if (item.IsAvailable)
+                                {
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i>En vente
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle-fill me-1"></i>Épuisé
+                                    </button>
+                                }
+                            </form>
+                        </td>
+                        <td class="text-end">
+                            <a asp-page="/Admin/Menu/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" class="d-inline"
+                                  onsubmit="return confirm('Confirmez-vous la suppression ou mise hors service de ce plat ?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
